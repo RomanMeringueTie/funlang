@@ -70,11 +70,11 @@ func parseFunInvocation(line string) AST {
 
 func MockProgram() AST {
 	// f() = 1
-	f := FunDef{id: "f", params: []string{}, expr: Num{1}, scope: make(Scope)}
+	f := FunDef{id: "f", params: []string{}, expr: Num{1}}
 	// f(a) = 2
-	f1 := FunDef{id: "f", params: []string{"a"}, expr: Id{"a"}, scope: make(Scope)}
+	f1 := FunDef{id: "f", params: []string{"a"}, expr: Id{"a"}}
 	// f(a, b) = a + b
-	f2 := FunDef{id: "f", params: []string{"a", "b"}, expr: Plus{left: Id{"a"}, right: Id{"b"}}, scope: make(Scope)}
+	f2 := FunDef{id: "f", params: []string{"a", "b"}, expr: Plus{left: Id{"a"}, right: Id{"b"}}}
 	// f()
 	fCall := FunInv{id: "f", args: []Expr{}}
 	// f(1)

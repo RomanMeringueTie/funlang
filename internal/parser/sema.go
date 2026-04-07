@@ -2,10 +2,15 @@ package parser
 
 import (
 	"fmt"
+	"log"
 	"slices"
 )
 
-type Scope map[string]int
+type Var struct {
+	string
+	uint
+}
+type Scope []uint
 
 type funMetadata struct {
 	expression Expr
@@ -14,52 +19,113 @@ type funMetadata struct {
 
 var FunIds map[string]funMetadata = make(map[string]funMetadata)
 
-func (scope *Scope) addVarId(id string) error {
-	if _, isPresent := (*scope)[id]; isPresent {
-		return fmt.Errorf("variable with identifier %s already exists in this scope", id)
-	}
-
-	(*scope)[id] = -1
-	return nil
+func (scope *Scope) setVarValue(index int, value uint) {
+	(*scope)[index] = value
 }
 
-func (scope *Scope) setVarValue(id string, value uint) error {
-	if _, isPresent := (*scope)[id]; !isPresent {
-		return fmt.Errorf("variable with identifier %s not exists in this scope", id)
-	}
-
-	if value >= 0 {
-		(*scope)[id] = int(value)
-	}
-	return nil
-}
-
-func addFun(id string, params []string, expr Expr, scope *Scope) error {
+func addFun(id string, params []string, expr Expr) error {
 	if _, isPresent := FunIds[id]; isPresent {
-		return fmt.Errorf("variable with identifier %s already exists in this scope", id)
+		return fmt.Errorf("function %s already exists", id)
 	}
 
-	validateExpr(id, params, expr)
+	err := validateFunParams(id, params)
+	if err != nil {
+		return err
+	}
+
+	err = validateFunExpr(id, params, expr)
+	if err != nil {
+		return err
+	}
 
 	mangledName := getFuncMangledName(id, uint(len(params)))
-	FunIds[mangledName] = funMetadata{expr, scope}
+	scope := make(Scope, len(params))
+	FunIds[mangledName] = funMetadata{expr, &scope}
 
 	return nil
+}
+
+func mapArgsToParams(id string, args []Expr) {
+	if _, isPresent := FunIds[id]; !isPresent {
+		log.Fatalf("function %s not exists", id)
+	}
+
+	for index, expr := range args {
+		FunIds[id].scope.setVarValue(index, expr.Eval())
+	}
 }
 
 func getFuncMangledName(id string, argCount uint) string {
 	return fmt.Sprintf("%s%d", id, argCount)
 }
 
-func validateExpr(funId string, params []string, expr Expr) error {
-	id, ok := expr.(Id)
-	if ok {
-		if !slices.Contains(params, id.name) {
-			return fmt.Errorf("var %s in expression of function %s is undeclared", id, funId)
+func validateFunParams(funId string, params []string) error {
+	seen := make(map[string]struct{}, len(params))
+	for _, param := range params {
+		if _, ok := seen[param]; ok {
+			return fmt.Errorf("parameter %s already exists in function %s", param, funId)
 		}
+		seen[param] = struct{}{}
 	}
 
-	//: Add processing of operations
+	return nil
+}
+
+func validateFunExpr(funId string, params []string, expr Expr) error {
+	switch exprType := expr.(type) {
+	case Id:
+		if !slices.Contains(params, exprType.name) {
+			return fmt.Errorf("parameter %s in function %s is undeclared", exprType.name, funId)
+		}
+		return nil
+	case Num:
+		return nil
+	case Plus:
+		err := validateFunExpr(funId, params, exprType.left)
+		if err != nil {
+			return err
+		}
+		err = validateFunExpr(funId, params, exprType.right)
+		if err != nil {
+			return err
+		}
+	case Minus:
+		err := validateFunExpr(funId, params, exprType.left)
+		if err != nil {
+			return err
+		}
+		err = validateFunExpr(funId, params, exprType.right)
+		if err != nil {
+			return err
+		}
+	case Mul:
+		err := validateFunExpr(funId, params, exprType.left)
+		if err != nil {
+			return err
+		}
+		err = validateFunExpr(funId, params, exprType.right)
+		if err != nil {
+			return err
+		}
+	case Div:
+		err := validateFunExpr(funId, params, exprType.left)
+		if err != nil {
+			return err
+		}
+		err = validateFunExpr(funId, params, exprType.right)
+		if err != nil {
+			return err
+		}
+	case Mod:
+		err := validateFunExpr(funId, params, exprType.left)
+		if err != nil {
+			return err
+		}
+		err = validateFunExpr(funId, params, exprType.right)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

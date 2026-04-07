@@ -2,6 +2,8 @@ package parser
 
 import "fmt"
 
+var currentScope *Scope = nil
+
 //: Implement nodes and AST [*]
 
 type AST []Node
@@ -25,24 +27,11 @@ type FunDef struct {
 	id     string
 	params []string
 	expr   Expr
-
-	scope Scope
 }
 
 func (funDef FunDef) Run() error {
-	for _, param := range funDef.params {
-		funDef.scope.addVarId(param)
-	}
-	return addFun(funDef.id, funDef.params, funDef.expr, &funDef.scope)
+	return addFun(funDef.id, funDef.params, funDef.expr)
 }
-
-// func (params Params) Run() error {
-// 	for _, param := range params.ids {
-// 		if addVarId(param)
-// 	}
-
-// 	return nil
-// }
 
 // Expressions
 type Expr interface {
@@ -66,6 +55,7 @@ func (id Id) Eval() uint {
 	return 0
 }
 
+// Operations
 type Plus struct {
 	left  Expr
 	right Expr
@@ -118,6 +108,7 @@ type FunInv struct {
 
 func (funInv FunInv) Eval() uint {
 	mangledName := getFuncMangledName(funInv.id, uint(len(funInv.args)))
+	mapArgsToParams(mangledName, funInv.args)
 	return FunIds[mangledName].expression.Eval()
 }
 
