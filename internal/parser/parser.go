@@ -80,7 +80,7 @@ func MockProgram() AST {
 	// f(1)
 	f1Call := FunInv{id: "f", args: []Expr{Num{1}}}
 	// f(10, 59)
-	f2Call := FunInv{id: "f", args: []Expr{Num{10}, Num{59}}}
+	f2Call := FunInv{id: "f", args: []Expr{Num{11}, Num{2}}}
 
 	ast := AST{f, f1, f2, fCall, f1Call, f2Call}
 	return ast

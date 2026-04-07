@@ -4,8 +4,6 @@ import "fmt"
 
 var currentScope *Scope = nil
 
-//: Implement nodes and AST [*]
-
 type AST []Node
 
 func (ast *AST) Run() error {
@@ -51,7 +49,12 @@ type Id struct {
 }
 
 func (id Id) Eval() uint {
-	//: Implement id.Eval()
+	for _, variable := range *currentScope {
+		if variable.name == id.name {
+			return uint(variable.value)
+		}
+	}
+
 	return 0
 }
 
@@ -108,6 +111,7 @@ type FunInv struct {
 
 func (funInv FunInv) Eval() uint {
 	mangledName := getFuncMangledName(funInv.id, uint(len(funInv.args)))
+	currentScope = FunIds[mangledName].scope
 	mapArgsToParams(mangledName, funInv.args)
 	return FunIds[mangledName].expression.Eval()
 }
