@@ -1,6 +1,0 @@
-//: Add language specification [x]
-//: Refactor mapping parameters to arguments [x]
-//: Make nodes fields public ?
-//: Refactor parser, sema, helpers, scope, ...
-//: Implement parser
-//: Add tests

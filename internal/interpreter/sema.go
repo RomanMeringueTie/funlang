@@ -1,4 +1,4 @@
-package parser
+package interpreter
 
 import (
 	"fmt"
@@ -6,18 +6,13 @@ import (
 	"slices"
 )
 
+// Scope
 type Var struct {
 	name  string
 	value int
 }
+
 type Scope []Var
-
-type funData struct {
-	expression Expr
-	scope      *Scope
-}
-
-var FunIds map[string]funData = make(map[string]funData)
 
 func (scope *Scope) addVar(index uint, name string) {
 	(*scope)[index] = Var{name: name, value: -1}
@@ -26,6 +21,16 @@ func (scope *Scope) addVar(index uint, name string) {
 func (scope *Scope) setVarValue(index uint, value uint) {
 	(*scope)[index].value = int(value)
 }
+
+type funData struct {
+	expression Expr
+	scope      *Scope
+}
+
+var currentScope *Scope = nil
+
+// Symbols table
+var FunIds map[string]funData = make(map[string]funData)
 
 func addFun(id string, params []string, expr Expr) error {
 	if _, isPresent := FunIds[id]; isPresent {
@@ -49,20 +54,7 @@ func addFun(id string, params []string, expr Expr) error {
 	return nil
 }
 
-func mapArgsToParams(id string, args []Expr) {
-	if _, isPresent := FunIds[id]; !isPresent {
-		log.Fatalf("function %s not exists", id)
-	}
-
-	for index, expr := range args {
-		FunIds[id].scope.setVarValue(uint(index), expr.Eval())
-	}
-}
-
-func getFuncMangledName(id string, argCount uint) string {
-	return fmt.Sprintf("%s%d", id, argCount)
-}
-
+// Checks
 func validateFunParams(funId string, params []string) error {
 	seen := make(map[string]struct{}, len(params))
 	for index, param := range params {
@@ -135,8 +127,22 @@ func validateFunExpr(funId string, params []string, expr Expr) error {
 	return nil
 }
 
-// ===DEBUG===
+// Helpers
+func mapArgsToParams(id string, args []Expr) {
+	if _, isPresent := FunIds[id]; !isPresent {
+		log.Fatalf("function %s not exists", id)
+	}
 
+	for index, expr := range args {
+		FunIds[id].scope.setVarValue(uint(index), expr.Eval())
+	}
+}
+
+func getFuncMangledName(id string, argCount uint) string {
+	return fmt.Sprintf("%s%d", id, argCount)
+}
+
+// ===DEBUG===
 func printFunMap() {
 	for key := range FunIds {
 		fmt.Printf("key: %s\n", key)

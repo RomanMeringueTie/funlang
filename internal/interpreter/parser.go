@@ -1,4 +1,4 @@
-package parser
+package interpreter
 
 import (
 	"bufio"
@@ -66,22 +66,4 @@ func parseFunInvocation(line string) AST {
 	funcIdIndex++
 
 	return AST{}
-}
-
-func MockProgram() AST {
-	// f() = 1
-	f := FunDef{Id: "f", Params: []string{}, Expr: Num{1}}
-	// f(a) = 2
-	f1 := FunDef{Id: "f", Params: []string{"a"}, Expr: Id{"a"}}
-	// f(a, b) = a + b
-	f2 := FunDef{Id: "f", Params: []string{"a", "b"}, Expr: Plus{Left: Id{"a"}, Right: Id{"b"}}}
-	// f()
-	fCall := FunInv{Id: "f", Args: []Expr{}}
-	// f(1)
-	f1Call := FunInv{Id: "f", Args: []Expr{Num{1}}}
-	// f(10, 59)
-	f2Call := FunInv{Id: "f", Args: []Expr{Num{11}, Num{2}}}
-
-	ast := AST{f, f1, f2, fCall, f1Call, f2Call}
-	return ast
 }
