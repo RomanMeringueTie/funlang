@@ -79,54 +79,54 @@ func validateFunParams(funId string, params []string) error {
 func validateFunExpr(funId string, params []string, expr Expr) error {
 	switch exprType := expr.(type) {
 	case Id:
-		if !slices.Contains(params, exprType.name) {
-			return fmt.Errorf("parameter %s in function %s is undeclared", exprType.name, funId)
+		if !slices.Contains(params, exprType.Name) {
+			return fmt.Errorf("parameter %s in function %s is undeclared", exprType.Name, funId)
 		}
 		return nil
 	case Num:
 		return nil
 	case Plus:
-		err := validateFunExpr(funId, params, exprType.left)
+		err := validateFunExpr(funId, params, exprType.Left)
 		if err != nil {
 			return err
 		}
-		err = validateFunExpr(funId, params, exprType.right)
+		err = validateFunExpr(funId, params, exprType.Right)
 		if err != nil {
 			return err
 		}
 	case Minus:
-		err := validateFunExpr(funId, params, exprType.left)
+		err := validateFunExpr(funId, params, exprType.Left)
 		if err != nil {
 			return err
 		}
-		err = validateFunExpr(funId, params, exprType.right)
+		err = validateFunExpr(funId, params, exprType.Right)
 		if err != nil {
 			return err
 		}
 	case Mul:
-		err := validateFunExpr(funId, params, exprType.left)
+		err := validateFunExpr(funId, params, exprType.Left)
 		if err != nil {
 			return err
 		}
-		err = validateFunExpr(funId, params, exprType.right)
+		err = validateFunExpr(funId, params, exprType.Right)
 		if err != nil {
 			return err
 		}
 	case Div:
-		err := validateFunExpr(funId, params, exprType.left)
+		err := validateFunExpr(funId, params, exprType.Left)
 		if err != nil {
 			return err
 		}
-		err = validateFunExpr(funId, params, exprType.right)
+		err = validateFunExpr(funId, params, exprType.Right)
 		if err != nil {
 			return err
 		}
 	case Mod:
-		err := validateFunExpr(funId, params, exprType.left)
+		err := validateFunExpr(funId, params, exprType.Left)
 		if err != nil {
 			return err
 		}
-		err = validateFunExpr(funId, params, exprType.right)
+		err = validateFunExpr(funId, params, exprType.Right)
 		if err != nil {
 			return err
 		}

@@ -25,13 +25,13 @@ type Node interface {
 }
 
 type FunDef struct {
-	id     string
-	params []string
-	expr   Expr
+	Id     string
+	Params []string
+	Expr   Expr
 }
 
 func (funDef FunDef) Run() error {
-	return addFun(funDef.id, funDef.params, funDef.expr)
+	return addFun(funDef.Id, funDef.Params, funDef.Expr)
 }
 
 // Expressions
@@ -40,28 +40,28 @@ type Expr interface {
 }
 
 type Num struct {
-	number uint
+	Number uint
 }
 
 func (num Num) Eval() uint {
-	return num.number
+	return num.Number
 }
 
 type Id struct {
-	name string
+	Name string
 }
 
 func (id Id) Eval() uint {
 	value := -1
 	for _, variable := range *currentScope {
-		if variable.name == id.name {
+		if variable.name == id.Name {
 			value = variable.value
 			break
 		}
 	}
 
 	if value < 0 {
-		log.Fatalf("parameter %s is not initialized", id.name)
+		log.Fatalf("parameter %s is not initialized", id.Name)
 	}
 
 	return uint(value)
@@ -69,59 +69,59 @@ func (id Id) Eval() uint {
 
 // Operations
 type Plus struct {
-	left  Expr
-	right Expr
+	Left  Expr
+	Right Expr
 }
 
 func (plus Plus) Eval() uint {
-	return plus.left.Eval() + plus.right.Eval()
+	return plus.Left.Eval() + plus.Right.Eval()
 }
 
 type Minus struct {
-	left  Expr
-	right Expr
+	Left  Expr
+	Right Expr
 }
 
 func (minus Minus) Eval() uint {
-	return minus.left.Eval() - minus.right.Eval()
+	return minus.Left.Eval() - minus.Right.Eval()
 }
 
 type Div struct {
-	left  Expr
-	right Expr
+	Left  Expr
+	Right Expr
 }
 
 func (div Div) Eval() uint {
-	return div.left.Eval() / div.right.Eval()
+	return div.Left.Eval() / div.Right.Eval()
 }
 
 type Mul struct {
-	left  Expr
-	right Expr
+	Left  Expr
+	Right Expr
 }
 
 func (mul Mul) Eval() uint {
-	return mul.left.Eval() * mul.right.Eval()
+	return mul.Left.Eval() * mul.Right.Eval()
 }
 
 type Mod struct {
-	left  Expr
-	right Expr
+	Left  Expr
+	Right Expr
 }
 
 func (mod Mod) Eval() uint {
-	return mod.left.Eval() % mod.right.Eval()
+	return mod.Left.Eval() % mod.Right.Eval()
 }
 
 type FunInv struct {
-	id   string
-	args []Expr
+	Id   string
+	Args []Expr
 }
 
 func (funInv FunInv) Eval() uint {
-	mangledName := getFuncMangledName(funInv.id, uint(len(funInv.args)))
+	mangledName := getFuncMangledName(funInv.Id, uint(len(funInv.Args)))
 	currentScope = FunIds[mangledName].scope
-	mapArgsToParams(mangledName, funInv.args)
+	mapArgsToParams(mangledName, funInv.Args)
 	return FunIds[mangledName].expression.Eval()
 }
 
