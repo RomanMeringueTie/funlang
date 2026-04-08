@@ -2,12 +2,15 @@ package interpreter
 
 import (
 	"bufio"
+	"fmt"
+	"funlang/pkg/data_structures"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
-func parseFile(path string) AST {
+func ParseFile(path string) AST {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -18,7 +21,11 @@ func parseFile(path string) AST {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		tokens = append(tokens, parseLine(line)...)
+
+		node := parseLine(line)
+		if node != nil {
+			tokens = append(tokens, node)
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -28,9 +35,9 @@ func parseFile(path string) AST {
 	return tokens
 }
 
-func parseLine(line string) AST {
+func parseLine(line string) Node {
 	if len(strings.TrimSpace(line)) == 0 {
-		return AST{}
+		return nil
 	}
 
 	if strings.Contains(line, "=") {
@@ -41,20 +48,106 @@ func parseLine(line string) AST {
 
 }
 
-func parseFunDefinition(line string) AST {
+func parseFunDefinition(line string) FunDef {
 	//: Implement parseFunDefinition
-	var funcIdIndex int
-	for index, char := range line {
+	var id string
+	var params []string
+	var expr Expr
+
+	var leftParIndex = 0
+	for leftParIndex, char := range line {
 		if char == '(' {
-			funcIdIndex = index
+			id = line[:leftParIndex]
 		}
 	}
 
-	funcIdIndex++
-	return AST{}
+	var rightParIndex = 0
+	for {
+		if line[rightParIndex] == ')' {
+			paramsString := line[leftParIndex+2 : rightParIndex]
+			params = getParams(paramsString)
+			break
+		}
+		rightParIndex++
+	}
+
+	expr = parsePolishNotation(line[rightParIndex+1:])
+
+	funDef := FunDef{Id: id, Params: params, Expr: expr}
+	fmt.Println(funDef)
+
+	return funDef
 }
 
-func parseFunInvocation(line string) AST {
+func getParams(paramsString string) []string {
+	paramsStringWithoutSpaces := strings.ReplaceAll(paramsString, " ", "")
+
+	params := strings.Split(paramsStringWithoutSpaces, ",")
+	return params
+}
+
+func parsePolishNotation(expression string) Expr {
+	expressionWithSingleSpaces := strings.Join(strings.Fields(expression), " ")
+	splittedExpression := strings.Split(expressionWithSingleSpaces, " ")
+	operationStack := data_structures.NewStack[string]()
+	variableStack := data_structures.NewStack[string]()
+
+	for _, token := range splittedExpression {
+		if isOperation(token) {
+			operationStack.Push(token)
+		} else {
+			variableStack.Push(token)
+		}
+	}
+
+	return getExpression(operationStack, variableStack)
+}
+
+func getExpression(operationStack, variableStack *data_structures.Stack[string]) Expr {
+
+	for {
+		if operationStack.Size() == 0 {
+			return idOrNumberToExpr(variableStack.Pop())
+		}
+
+		operation := operationStack.Pop()
+		right := idOrNumberToExpr(variableStack.Pop())
+
+		switch operation {
+		case "+":
+			return Plus{Left: getExpression(operationStack, variableStack), Right: right}
+		case "-":
+			return Minus{Left: getExpression(operationStack, variableStack), Right: right}
+		case "*":
+			return Mul{Left: getExpression(operationStack, variableStack), Right: right}
+		case "/":
+			return Div{Left: getExpression(operationStack, variableStack), Right: right}
+		case "%":
+			return Mod{Left: getExpression(operationStack, variableStack), Right: right}
+		}
+	}
+
+}
+
+func isOperation(token string) bool {
+	switch token {
+	case "+", "-", "*", "/", "%":
+		return true
+	default:
+		return false
+	}
+}
+
+func idOrNumberToExpr(idOrNumber string) Expr {
+	value, err := strconv.Atoi(idOrNumber)
+	if err != nil {
+		return Id{Name: idOrNumber}
+	}
+
+	return Num{Number: uint(value)}
+}
+
+func parseFunInvocation(line string) FunInv {
 	//: Implement parseFunInvocation
 	var funcIdIndex int
 	for index, char := range line {
@@ -65,5 +158,5 @@ func parseFunInvocation(line string) AST {
 
 	funcIdIndex++
 
-	return AST{}
+	return FunInv{}
 }

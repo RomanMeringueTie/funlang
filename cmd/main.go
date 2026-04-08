@@ -26,6 +26,7 @@ func mockProgram() interpreter.AST {
 func main() {
 	fmt.Println("Hello from funclang")
 
-	ast := mockProgram()
+	// ast := mockProgram()
+	ast := interpreter.ParseFile("example.fun")
 	ast.Run()
 }
