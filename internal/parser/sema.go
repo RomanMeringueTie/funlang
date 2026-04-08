@@ -12,12 +12,12 @@ type Var struct {
 }
 type Scope []Var
 
-type funMetadata struct {
+type funData struct {
 	expression Expr
 	scope      *Scope
 }
 
-var FunIds map[string]funMetadata = make(map[string]funMetadata)
+var FunIds map[string]funData = make(map[string]funData)
 
 func (scope *Scope) addVar(index uint, name string) {
 	(*scope)[index] = Var{name: name, value: -1}
@@ -34,7 +34,7 @@ func addFun(id string, params []string, expr Expr) error {
 
 	mangledName := getFuncMangledName(id, uint(len(params)))
 	scope := make(Scope, len(params))
-	FunIds[mangledName] = funMetadata{expr, &scope}
+	FunIds[mangledName] = funData{expr, &scope}
 
 	err := validateFunParams(mangledName, params)
 	if err != nil {

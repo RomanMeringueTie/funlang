@@ -1,6 +1,9 @@
 package parser
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 var currentScope *Scope = nil
 
@@ -49,13 +52,19 @@ type Id struct {
 }
 
 func (id Id) Eval() uint {
+	value := -1
 	for _, variable := range *currentScope {
 		if variable.name == id.name {
-			return uint(variable.value)
+			value = variable.value
+			break
 		}
 	}
 
-	return 0
+	if value < 0 {
+		log.Fatalf("parameter %s is not initialized", id.name)
+	}
+
+	return uint(value)
 }
 
 // Operations
