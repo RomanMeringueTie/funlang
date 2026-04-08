@@ -49,14 +49,13 @@ func parseLine(line string) Node {
 }
 
 func parseFunDefinition(line string) FunDef {
-	//: Implement parseFunDefinition
 	var id string
 	var params []string
 	var expr Expr
 
 	var leftParIndex = 0
-	for leftParIndex, char := range line {
-		if char == '(' {
+	for leftParIndex := range line {
+		if line[leftParIndex] == '(' {
 			id = line[:leftParIndex]
 		}
 	}
@@ -71,7 +70,16 @@ func parseFunDefinition(line string) FunDef {
 		rightParIndex++
 	}
 
-	expr = parsePolishNotation(line[rightParIndex+1:])
+	var equalsIndex = rightParIndex + 1
+	for {
+		if line[equalsIndex] == '=' {
+			break
+		}
+
+		equalsIndex++
+	}
+
+	expr = parsePolishNotation(line[equalsIndex+1:])
 
 	funDef := FunDef{Id: id, Params: params, Expr: expr}
 	fmt.Println(funDef)
@@ -87,7 +95,7 @@ func getParams(paramsString string) []string {
 }
 
 func parsePolishNotation(expression string) Expr {
-	expressionWithSingleSpaces := strings.Join(strings.Fields(expression), " ")
+	expressionWithSingleSpaces := strings.TrimSpace(strings.Join(strings.Fields(expression), " "))
 	splittedExpression := strings.Split(expressionWithSingleSpaces, " ")
 	operationStack := data_structures.NewStack[string]()
 	variableStack := data_structures.NewStack[string]()
@@ -148,15 +156,39 @@ func idOrNumberToExpr(idOrNumber string) Expr {
 }
 
 func parseFunInvocation(line string) FunInv {
-	//: Implement parseFunInvocation
-	var funcIdIndex int
-	for index, char := range line {
-		if char == '(' {
-			funcIdIndex = index
+	var id string
+	var args []Expr
+
+	var leftParIndex = 0
+	for leftParIndex := range line {
+		if line[leftParIndex] == '(' {
+			id = line[:leftParIndex]
 		}
 	}
 
-	funcIdIndex++
+	var rightParIndex = 0
+	for {
+		if line[rightParIndex] == ')' {
+			argsString := line[leftParIndex+2 : rightParIndex]
+			args = getArgs(argsString)
+			break
+		}
+		rightParIndex++
+	}
+	funInv := FunInv{Id: id, Args: args}
+	fmt.Println(funInv)
 
-	return FunInv{}
+	return funInv
+}
+
+func getArgs(args string) []Expr {
+
+	expessions := make([]Expr, 0)
+
+	splittedArgs := strings.Split(args, ",")
+	for _, arg := range splittedArgs {
+		expessions = append(expessions, parsePolishNotation(arg))
+	}
+
+	return expessions
 }
